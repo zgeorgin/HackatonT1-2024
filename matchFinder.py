@@ -1,11 +1,14 @@
 from Matching import Matching
 from LCS import LCS
 
-def matchFinderLCS(colVals : list[str]) -> list[Matching]:
+def matchFinderLCS(colVals) -> list[Matching]:
     matchings = []
     colValsTokens = []
-    for value in colVals:
-        colValsTokens.append(str(value).split())
+    for value in colVals.values():
+        if not isinstance(value, str):
+            continue
+            
+        colValsTokens.append(value.split())
     
     for i in range(len(colValsTokens)):
         for j in range(i, len(colValsTokens)):
@@ -59,7 +62,7 @@ def matchFinderLCS(colVals : list[str]) -> list[Matching]:
                         if len(matchToken) > len(token2[0]):
                             matchToken = token2[0]
                 
-                matchings.append(Matching(token1[0], matchToken, token1[1]))
+                matchings.append(Matching(token1[0], matchToken, token1[1], 0, 0, 0))
     return matchings
                         
                         

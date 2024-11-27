@@ -24,11 +24,15 @@ class GoldenFinder:
     def getGroups(self, mode : str):
         if mode == 'Structs':
             self.groups = aggregateByStrucs(self.transformations)
+    
+        
+'''
+Example:
 
 uniqueCol = "client_id" 
-matchCol = "client_bplace"
+matchCol = "client_fio_full"
 
-GF = GoldenFinder("ds_dirty_fin_202410041147.csv")
+GF = GoldenFinder(pd.read_csv("ds_dirty_fin_202410041147.csv"))
 
 GF.getClusters(uniqueCol)
 GF.getMatchings(matchCol, "LCS")
@@ -36,4 +40,7 @@ GF.getMatchings(matchCol, "LCS")
 GF.getTransformations()
 GF.getGroups("Structs")
 
-print(len(groups['Td -> ']))
+print(GF.clusters[1]["client_fio_full"].values())
+print(GF.groups)
+GF.groups['TETeT-TETe -> TCT-TC'][0].print()
+'''
