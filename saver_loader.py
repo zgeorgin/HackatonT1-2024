@@ -4,12 +4,13 @@ import threading
 import chardet
 
 class SaverLoader:
-    def __init__(self, window, df=None, open_path=None, save_path=None, man_flag=None):
+    def __init__(self, window, gui=None, df=None, open_path=None, save_path=None, flags=None):
         self.window = window
         self.df = df
         self.open_path = open_path
         self.save_path = save_path
-        self.man_flag = 1
+        self.flags = ["Вручную проверить группы связей", "LCS", "Struct"]
+        self.gui = gui
 
     def open_file(self, progress_bar, cur_table):
         self.open_path = filedialog.askopenfilename()
@@ -39,8 +40,11 @@ class SaverLoader:
                         self.window.update_idletasks()
 
                     self.df = pd.concat(data, ignore_index=True)
-
                     cur_table.config(text=f"Текущая таблица: {self.open_path.split('/')[-1]}")
+
+                    if self.df is not None:
+                        # Передаем имена колонок в комбобокс
+                        self.gui.update_option_frame(self.df.columns.tolist())
                 except Exception as e:
                     cur_table.config(text="Ошибка загрузки файла")
                     print(f"Ошибка: {e}")
