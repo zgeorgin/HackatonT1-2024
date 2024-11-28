@@ -7,6 +7,15 @@ from PIL import Image, ImageTk
 import io
 from saver_loader import * 
 
+COLORS = {
+    "lowercase_cyrillic": "blue",
+    "capital_cyrillic": "darkblue",
+    "lowercase_english": "green",
+    "capital_english": "darkgreen",
+    "digits": "red",
+    "default": "black",
+}
+
 class GUI:
     def __init__(self, window, saver_loader, groups):
         # Инициализация атрибутов
@@ -26,17 +35,20 @@ class GUI:
     def setup_ui(self):
         self.window.config(background='lightgrey')
         self.window.title("Создание золотой записи из данных пользователя")
-        self.window.geometry("1200x700")
 
-        frame = Frame(self.window, relief=GROOVE, borderwidth=10, bg="darkgrey")
-        frame.place(x=180, y=25, width=460, height=420)
+        x_frame = self.window.winfo_screenwidth()/2 - 100 - 460
+        x_option_frame = self.window.winfo_screenwidth()/2 + 100
+        y_frame = self.window.winfo_screenheight()/2 - 400
+        y_option_frame = self.window.winfo_screenheight()/2 - 400
 
-        # Инициализируем option_frame с Canvas и Scrollbar
+        self.frame = Frame(self.window, relief=GROOVE, borderwidth=10, bg="darkgrey")
+        self.frame.place(x=x_frame, y=y_frame, width=460, height=420)
+
         self.option_frame = Frame(self.window, relief=GROOVE, borderwidth=10, bg="darkgrey")
-        self.option_frame.place(x=900, y=25, width=460, height=420)
+        self.option_frame.place(x=x_option_frame, y=y_option_frame, width=460, height=420)
 
         # Создание комбобоксов для выбора
-        self.combobox = Combobox(frame, values=["Human", "Computer"], width=37, state="readonly")
+        self.combobox = Combobox(self.frame, values=["Human", "Computer"], width=37, state="readonly")
         self.combobox.place(x=10, y=145)
         self.combobox.set("Метод подтверждения преобразований")
         self.combobox.bind("<<ComboboxSelected>>", self.selected)
@@ -63,9 +75,9 @@ class GUI:
         self.data_combobox.place(x=10, y=315)
         self.data_combobox.set("Колонка с датой")
 
-        self.create_widgets(frame)
+        self.create_widgets()
 
-    def create_widgets(self, frame):
+    def create_widgets(self):
         method_lbl = Label(self.option_frame, text="Дополнительные опции", bg="darkgrey", font=("Courier", 18, "bold"))
         method_lbl.place(x=80, y=5)
 
@@ -84,40 +96,42 @@ class GUI:
         method_lbl = Label(self.option_frame, text="Указать колонку с датой:", bg="darkgrey", font=("Courier", 12, "bold"))
         method_lbl.place(x=10, y=285)
 
-        method_lbl = Label(frame, text="Укажите путь до необработанного датасета (в CSV формате):", bg="darkgrey", font=("Courier", 9, "bold"))
+        method_lbl = Label(self.frame, text="Укажите путь до необработанного датасета (в CSV формате):", bg="darkgrey", font=("Courier", 9, "bold"))
         method_lbl.place(x=10, y=5)
 
-        cur_table = Label(frame, text="Текущая таблица: ", bg="darkgrey", font=("Courier", 10, "bold"))
+        cur_table = Label(self.frame, text="Текущая таблица: ", bg="darkgrey", font=("Courier", 10, "bold"))
         cur_table.place(x=10, y=70)
 
-        method_lbl = Label(frame, text="Укажите путь сохранения золотого датасета:", bg="darkgrey", font=("Courier", 12, "bold"))
+        method_lbl = Label(self.frame, text="Укажите путь сохранения золотого датасета:", bg="darkgrey", font=("Courier", 12, "bold"))
         method_lbl.place(x=10, y=330)
 
-        submit_btn = Button(frame, text="Запустить алгоритм", command=self.run_algorithm)
+        submit_btn = Button(self.frame, text="Запустить алгоритм", command=self.run_algorithm)
         submit_btn.place(x=10, y=190)
 
-        make_btn = Button(frame, text="Сделать золотую запись", command=self.makeGolden)
+        make_btn = Button(self.frame, text="Сделать золотую запись", command=self.makeGolden)
         make_btn.place(x=160, y=190)
 
-        save_button = Button(frame, text="Сохранить файл", command=self.saver_loader.save_file)
+        save_button = Button(self.frame, text="Сохранить файл", command=self.saver_loader.save_file)
         save_button.place(x=10, y=360, width=420)
 
-        show_table_btn = Button(frame, text="Просмотр текущей таблицы", command=self.show_table)
+        show_table_btn = Button(self.frame, text="Просмотр текущей таблицы", command=self.show_table)
         show_table_btn.place(x=10, y=240, width=170)
 
-        show_info_btn = Button(frame, text="Просмотр информации о текущей таблице", command=self.show_info)
+        show_info_btn = Button(self.frame, text="Просмотр информации о текущей таблице", command=self.show_info)
         show_info_btn.place(x=10, y=290, width=300)
 
-        progress_bar = Progressbar(frame, orient=HORIZONTAL, length=400, mode='determinate')
+        progress_bar = Progressbar(self.frame, orient=HORIZONTAL, length=400, mode='determinate')
         progress_bar.place(x=10, y=100, width=420)
 
-        open_button = Button(frame, text="Открыть файл", command=lambda: self.saver_loader.open_file(progress_bar, cur_table))
+        open_button = Button(self.frame, text="Открыть файл", command=lambda: self.saver_loader.open_file(progress_bar, cur_table))
         open_button.place(x=10, y=35, width=420)
 
         img = Image.open('question.png')
         button_image = ImageTk.PhotoImage(img.resize((50, 50)))
+        x_question = self.window.winfo_screenwidth()/2 - 30
+        y_question = self.window.winfo_screenheight() - 300
         question_button = Button(self.window, image=button_image, command=self.open_question_window)
-        question_button.place(x=740, y=715, width=60, height=60)
+        question_button.place(x=x_question, y=y_question, width=60, height=60)
         question_button.image = button_image
 
     def update_option_frame(self, columns):
@@ -167,7 +181,42 @@ class GUI:
 
     def makeGolden(self):
         self.saver_loader.result_df = self.saver_loader.GF.getGolden(self.selected_data_column)
-        
+
+    def get_char_type(self, char):
+        if char in [chr(i) for i in range(0x0430, 0x044F + 1)]:
+            return "lowercase_cyrillic"
+        elif char in [chr(i) for i in range(0x0410, 0x042F + 1)]:
+            return "capital_cyrillic"
+        elif char in [chr(i) for i in range(0x0061, 0x007A + 1)]:
+            return "lowercase_english"
+        elif char in [chr(i) for i in range(0x0041, 0x005A + 1)]:
+            return "capital_english"
+        elif char in [chr(i) for i in range(0x0030, 0x0039 + 1)]:
+            return "digits"
+        else:
+            return "default"
+
+    def create_colored_label(self, frame, text, wraplength=350):
+        label = Label(frame, wraplength=wraplength, justify=LEFT, anchor="w")
+        colored_text = ""
+        last_color = None
+
+        for char in text:
+            char_type = self.get_char_type(char)
+            char_color = COLORS[char_type]
+            if char_color != last_color:
+                if colored_text:
+                    label.config(text=colored_text, fg=last_color or COLORS["default"])
+                colored_text = char
+                last_color = char_color
+            else:
+                colored_text += char
+
+        if colored_text:
+            label.config(text=colored_text, fg=last_color or COLORS["default"])
+
+        label.pack(fill=X, padx=5, pady=2)
+
     def run_algorithm(self):
         if self.saver_loader.flags[0] == "Human":
             uniqueCol = self.selected_duplicate_column
@@ -175,51 +224,42 @@ class GUI:
 
             self.saver_loader.GF.getClusters(uniqueCol, matchCol)
             self.saver_loader.GF.getMatchings(self.saver_loader.flags[1])
-            print("MATCHED!")
             self.saver_loader.GF.getTransformations()
-            self.saver_loader.GF.getGroups(self.saver_loader.flags[2]) 
-            
+            self.saver_loader.GF.getGroups(self.saver_loader.flags[2])
+
             formated_groups = []
             for key in self.saver_loader.GF.groups:
                 formated_groups.append([key])
                 for t in self.saver_loader.GF.groups[key][:20]:
                     formated_groups[-1].append(f"{t.m.a} -> {t.m.b}")
-            
+
             self.groups = formated_groups
-            
+
             results = []
-            # Индекс текущей группы
             current_index = 0
 
-            # Создание нового окна
             algo_window = Toplevel(self.window)
             algo_window.title("Проверка групп")
             algo_window.geometry("400x500")
 
-            # Основной фрейм с прокруткой
             main_frame = Frame(algo_window)
             main_frame.pack(fill=BOTH, expand=True)
 
-            # Создание Canvas для скроллинга
             canvas = Canvas(main_frame)
             canvas.pack(side=LEFT, fill=BOTH, expand=True)
 
-            # Вертикальный скроллер
             scrollbar = Scrollbar(main_frame, orient=VERTICAL, command=canvas.yview)
             scrollbar.pack(side=RIGHT, fill=Y)
             canvas.configure(yscrollcommand=scrollbar.set)
 
-            # Фрейм внутри Canvas для содержимого группы
             group_frame = Frame(canvas)
             canvas.create_window((0, 0), window=group_frame, anchor="nw")
 
-            # Функция для обновления размеров Canvas
             def update_canvas_size(event=None):
                 canvas.configure(scrollregion=canvas.bbox("all"))
 
             group_frame.bind("<Configure>", update_canvas_size)
 
-            # Панель с кнопками
             button_frame = Frame(algo_window)
             button_frame.pack(fill=X, padx=10, pady=10)
 
@@ -232,19 +272,16 @@ class GUI:
             finish_button = But(button_frame, text="Завершить", command=algo_window.destroy, bg="lightblue")
             finish_button.pack(side=LEFT, expand=True, fill=X, padx=5)
 
-            # Счётчик групп
             counter_label = Label(algo_window, text="", font=("Arial", 12))
             counter_label.pack(pady=5)
 
             # Функция для обновления отображаемой группы
             def update_group():
-                # Очистить содержимое group_frame
                 for widget in group_frame.winfo_children():
                     widget.destroy()
                 if current_index < len(self.groups):
                     for line in self.groups[current_index]:
-                        Label(group_frame, text=line, anchor="w", wraplength=350, justify=LEFT).pack(fill=X, padx=5, pady=2)
-                    # Обновить счётчик групп
+                        self.create_colored_label(group_frame, line)  # Используем функцию цветного отображения текста
                     counter_label.config(text=f"Группа {current_index + 1} из {len(self.groups)}")
 
             # Функция для обработки нажатия кнопок "Да" или "Нет"
@@ -259,10 +296,7 @@ class GUI:
                 else:
                     algo_window.destroy()
 
-            # Отобразить первую группу
             update_group()
-
-            # Убедиться, что всё обновлено
             algo_window.protocol("WM_DELETE_WINDOW", algo_window.destroy)
             algo_window.wait_window()
 
