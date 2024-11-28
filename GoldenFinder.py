@@ -14,6 +14,7 @@ class GoldenFinder:
         self.uniqueCol = None
         self.dateCol = None
         self.uniquedf = None
+        
     def getClusters(self, uniqueCol : str, matchCol : str):
         self.uniqueCol = uniqueCol
         self.matchCol = matchCol
@@ -24,9 +25,9 @@ class GoldenFinder:
         self.matchings = []
         for i in range(len(self.clusters)):
             if mode == "LCS":
-                self.matchings.extend(matchFinderLCS(self.clusters[self.matchCol][i], i))
+                self.matchings.extend(matchFinderLCS(self.clusters[self.matchCol].iloc(i), i))
             if mode == "Cell":
-                self.matchings.extend(matchFinderCell(self.clusters[self.matchCol][i]))
+                self.matchings.extend(matchFinderCell(self.clusters[self.matchCol].iloc(i)))
             
     def getTransformations(self):
         self.transformations = [Transformation(m) for m in self.matchings]
@@ -59,25 +60,28 @@ class GoldenFinder:
 
     def getGolden(self, dateCol):
         self.dateCol = dateCol
-        
-        self.df['cluster_id'] = self.df['index'].map(
-        dict(zip(
-            [i for j in self.clusters.index for i in self.clusters.loc[j, 'index']],
-            self.clusters.index
-        ))
-        )
-        
-        print(self.df)
-        
+
+        # Генерация словаря индекс-кластер на основе self.clusters
+        index_to_cluster = {
+            i: cluster_id 
+            for cluster_id, indices in self.clusters['index'].items() 
+            for i in indices
+        }
+
+        # Создание нового столбца в self.df с идентификатором кластера
+        self.df['cluster_id'] = self.df.index.map(index_to_cluster)
+
+        # Группировка по идентификатору кластера и выбор строки с наибольшей датой
+        # Сначала сортируем, затем выбираем последнюю строку в каждой группе
         result_df = (
-            self.df.groupby('cluster_id')
-            .apply(lambda x: x.loc[x[dateCol].idxmax()])
-            .reset_index(drop=True)
+            self.df.sort_values(by=[dateCol]).groupby('cluster_id', as_index=False).last()
         )
-        #print(self.clusters.index)
-        result_df_cutted  =  result_df.loc[:, result_df.columns.isin(self.uniquedf.columns)]
-        print(len(self.groups))
-        return result_df#pd.concat([result_df_cutted, result_df], ignore_index=True)
+
+        print(len(self.clusters.index))
+        result_df_cutted = result_df.loc[:, result_df.columns.isin(self.uniquedf.columns)]
+
+        # Возвращаем результат
+        return pd.concat([result_df_cutted, result_df], ignore_index=True)
     '''
 Example:
 
