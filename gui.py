@@ -5,16 +5,7 @@ from tkinter import Button as But
 from tkinter import Toplevel, scrolledtext
 from PIL import Image, ImageTk
 import io
-from saver_loader import * 
-
-COLORS = {
-    "lowercase_cyrillic": "blue",
-    "capital_cyrillic": "darkblue",
-    "lowercase_english": "green",
-    "capital_english": "darkgreen",
-    "digits": "red",
-    "default": "black",
-}
+from saver_loader import *
 
 class GUI:
     def __init__(self, window, saver_loader, groups):
@@ -182,41 +173,6 @@ class GUI:
     def makeGolden(self):
         self.saver_loader.result_df = self.saver_loader.GF.getGolden(self.selected_data_column)
 
-    def get_char_type(self, char):
-        if char in [chr(i) for i in range(0x0430, 0x044F + 1)]:
-            return "lowercase_cyrillic"
-        elif char in [chr(i) for i in range(0x0410, 0x042F + 1)]:
-            return "capital_cyrillic"
-        elif char in [chr(i) for i in range(0x0061, 0x007A + 1)]:
-            return "lowercase_english"
-        elif char in [chr(i) for i in range(0x0041, 0x005A + 1)]:
-            return "capital_english"
-        elif char in [chr(i) for i in range(0x0030, 0x0039 + 1)]:
-            return "digits"
-        else:
-            return "default"
-
-    def create_colored_label(self, frame, text, wraplength=350):
-        label = Label(frame, wraplength=wraplength, justify=LEFT, anchor="w")
-        colored_text = ""
-        last_color = None
-
-        for char in text:
-            char_type = self.get_char_type(char)
-            char_color = COLORS[char_type]
-            if char_color != last_color:
-                if colored_text:
-                    label.config(text=colored_text, fg=last_color or COLORS["default"])
-                colored_text = char
-                last_color = char_color
-            else:
-                colored_text += char
-
-        if colored_text:
-            label.config(text=colored_text, fg=last_color or COLORS["default"])
-
-        label.pack(fill=X, padx=5, pady=2)
-
     def run_algorithm(self):
         if self.saver_loader.flags[0] == "Human":
             uniqueCol = self.selected_duplicate_column
@@ -236,30 +192,38 @@ class GUI:
             self.groups = formated_groups
 
             results = []
+            # Индекс текущей группы
             current_index = 0
 
+            # Создание нового окна
             algo_window = Toplevel(self.window)
             algo_window.title("Проверка групп")
             algo_window.geometry("400x500")
 
+            # Основной фрейм с прокруткой
             main_frame = Frame(algo_window)
             main_frame.pack(fill=BOTH, expand=True)
 
+            # Создание Canvas для скроллинга
             canvas = Canvas(main_frame)
             canvas.pack(side=LEFT, fill=BOTH, expand=True)
 
+            # Вертикальный скроллер
             scrollbar = Scrollbar(main_frame, orient=VERTICAL, command=canvas.yview)
             scrollbar.pack(side=RIGHT, fill=Y)
             canvas.configure(yscrollcommand=scrollbar.set)
 
+            # Фрейм внутри Canvas для содержимого группы
             group_frame = Frame(canvas)
             canvas.create_window((0, 0), window=group_frame, anchor="nw")
 
+            # Функция для обновления размеров Canvas
             def update_canvas_size(event=None):
                 canvas.configure(scrollregion=canvas.bbox("all"))
 
             group_frame.bind("<Configure>", update_canvas_size)
 
+            # Панель с кнопками
             button_frame = Frame(algo_window)
             button_frame.pack(fill=X, padx=10, pady=10)
 
@@ -272,16 +236,19 @@ class GUI:
             finish_button = But(button_frame, text="Завершить", command=algo_window.destroy, bg="lightblue")
             finish_button.pack(side=LEFT, expand=True, fill=X, padx=5)
 
+            # Счётчик групп
             counter_label = Label(algo_window, text="", font=("Arial", 12))
             counter_label.pack(pady=5)
 
             # Функция для обновления отображаемой группы
             def update_group():
+                # Очистить содержимое group_frame
                 for widget in group_frame.winfo_children():
                     widget.destroy()
                 if current_index < len(self.groups):
                     for line in self.groups[current_index]:
-                        self.create_colored_label(group_frame, line)  # Используем функцию цветного отображения текста
+                        Label(group_frame, text=line, anchor="w", wraplength=350, justify=LEFT).pack(fill=X, padx=5, pady=2)
+                    # Обновить счётчик групп
                     counter_label.config(text=f"Группа {current_index + 1} из {len(self.groups)}")
 
             # Функция для обработки нажатия кнопок "Да" или "Нет"
@@ -296,7 +263,10 @@ class GUI:
                 else:
                     algo_window.destroy()
 
+            # Отобразить первую группу
             update_group()
+
+            # Убедиться, что всё обновлено
             algo_window.protocol("WM_DELETE_WINDOW", algo_window.destroy)
             algo_window.wait_window()
 
