@@ -27,6 +27,6 @@ def dubl(df,ser,matchCol):
     print(neededCol)
     grouped =  neededCol.groupby(ser)
     dfs_list = grouped.agg({matchCol: lambda x: x, 'index': tuple})
-
+    
     print(dfs_list)
-    return dfs_list
+    return dfs_list, value_counts[value_counts == 1].index

@@ -13,11 +13,12 @@ class GoldenFinder:
         self.matchCol = None
         self.uniqueCol = None
         self.dateCol = None
-        
+        self.uniquedf = None
     def getClusters(self, uniqueCol : str, matchCol : str):
         self.uniqueCol = uniqueCol
         self.matchCol = matchCol
-        self.clusters = dubl(self.df, uniqueCol, matchCol)
+        self.clusters, unique_values = dubl(self.df, uniqueCol, matchCol)
+        self.uniquedf = self.df[self.df[uniqueCol].isin(unique_values)]
         
     def getMatchings(self, mode : str):
         self.matchings = []
@@ -57,11 +58,8 @@ class GoldenFinder:
 
 
     def getGolden(self, dateCol):
-        # Сохраняем значение столбца даты
         self.dateCol = dateCol
         
-        # Предполагается, что 'cluster_id' в self.df ссылается на кластеры
-        # Создаем новый DataFrame с кластеризацией
         self.df['cluster_id'] = self.df['index'].map(
         dict(zip(
             [i for j in self.clusters.index for i in self.clusters.loc[j, 'index']],
@@ -70,14 +68,16 @@ class GoldenFinder:
         )
         
         print(self.df)
-        # Используем groupby, чтобы выбрать строки с максимальной датой для каждого кластера
+        
         result_df = (
             self.df.groupby('cluster_id')
-            .apply(lambda x: x.loc[x[dateCol].idxmax()])  # Выбираем строку с максимальной датой
-            .reset_index(drop=True)  # Сбрасываем индекс для результирующего DataFrame
+            .apply(lambda x: x.loc[x[dateCol].idxmax()])
+            .reset_index(drop=True)
         )
-        print(self.clusters.index)
-        return result_df
+        #print(self.clusters.index)
+        result_df_cutted  =  result_df.loc[:, result_df.columns.isin(self.uniquedf.columns)]
+        print(len(self.groups))
+        return result_df#pd.concat([result_df_cutted, result_df], ignore_index=True)
     '''
 Example:
 
