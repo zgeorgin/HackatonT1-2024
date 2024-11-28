@@ -77,6 +77,24 @@ class GUI:
 
     def run_algorithm(self):
         if self.saver_loader.man_flag == 1:
+            uniqueCol = "client_fio_full"
+            matchCol = "client_bplace"
+
+            self.saver_loader.GF.getClusters(uniqueCol, matchCol)
+            self.saver_loader.GF.getMatchings("LCS")
+            print("MATCHED!")
+            self.saver_loader.GF.getTransformations()
+            self.saver_loader.GF.getGroups("Structs")
+            print(len(self.saver_loader.GF.groups))
+            
+            #self.saver_loader.GF.groups = dict(list(self.saver_loader.GF.groups.items())[:15])
+            formated_groups = []
+            for key in self.saver_loader.GF.groups:
+                formated_groups.append([key])
+                for t in self.saver_loader.GF.groups[key][:20]:
+                    formated_groups[-1].append(f"{t.m.a} -> {t.m.b}")
+            
+            self.groups = formated_groups
             results = []
             # Индекс текущей группы
             current_index = 0
@@ -141,6 +159,9 @@ class GUI:
             def handle_response(response):
                 nonlocal current_index
                 results.append(response)
+    
+                if response:
+                    self.saver_loader.GF.applyGroup(current_index)
                 current_index += 1
                 if current_index < len(self.groups):
                     update_group()
@@ -263,8 +284,11 @@ class GUI:
             text_widget = Text(self.question_window, height=10, width=50)
             text_widget.pack(padx=20, pady=20)
 
-            message = "1) Кто двинется - тот гей\n" \
-                      "2) Лёша - главный гей ФАЛТа"
+            message = "1) Выберите датасет\n" \
+                      "2) Выберите метод подтверждения преобразований\n" \
+                      "3) Посмотрите информацию о датасете до запуска алгоритма\n"\
+                      "4) Нажмите 'Запустить алгоритм' \n" \
+                      "5) Посмотрите информацию о датасете после запуска алгоритма"
             text_widget.insert(END, message)
 
             def close_question_window():

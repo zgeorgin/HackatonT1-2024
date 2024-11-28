@@ -2,11 +2,14 @@ import pandas as pd
 from tkinter import filedialog
 import threading
 import chardet
+from GoldenFinder import *
 
 class SaverLoader:
     def __init__(self, window, df=None, open_path=None, save_path=None, man_flag=None):
         self.window = window
         self.df = df
+        self.result_df = None
+        self.GF = None
         self.open_path = open_path
         self.save_path = save_path
         self.man_flag = 1
@@ -32,6 +35,7 @@ class SaverLoader:
                     total_chunks = (total_lines // chunk_size) + 1
 
                     chunks = pd.read_csv(self.open_path, chunksize=chunk_size, encoding=detected_encoding)
+                    
                     data = []
                     for i, chunk in enumerate(chunks):
                         data.append(chunk)
@@ -39,7 +43,7 @@ class SaverLoader:
                         self.window.update_idletasks()
 
                     self.df = pd.concat(data, ignore_index=True)
-
+                    self.GF = GoldenFinder(self.df)
                     cur_table.config(text=f"Текущая таблица: {self.open_path.split('/')[-1]}")
                 except Exception as e:
                     cur_table.config(text="Ошибка загрузки файла")
@@ -55,10 +59,12 @@ class SaverLoader:
             progress_bar.grid_remove()
 
     def save_file(self):
+        if self.result_df is None:
+            return 
         self.save_path = filedialog.asksaveasfilename()
         self.save_path += '.csv'
         with open(self.save_path, 'w+') as f:
-            self.df.to_csv(self.save_path)
+            self.result_df.to_csv(self.save_path)
 
 def detect_encoding(file_path):
     with open(file_path, 'rb') as f:

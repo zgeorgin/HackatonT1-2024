@@ -1,4 +1,4 @@
-
+import pandas as pd
 def fill_missing_values(df):
     for col in df.columns:
         if df[col].dtype in ['float64', 'int64']:
@@ -13,12 +13,20 @@ def prep(df):
     df = fill_missing_values(df)
     return df.to_dict()
 
-def dubl(df,ser):
-    list = []
+def dubl(df,ser,matchCol):
+    print(df)
     if ser not in df.columns:
         raise ValueError(f"Столбец '{ser}' не найден в DataFrame.")
-    dupl = df[df.duplicated(subset=[ser],keep=False)]
-    dupl1 = dupl['client_id'].unique()
-    for i in dupl1:
-        list.append(dupl.loc[dupl.client_id == i].to_dict())
-    return list
+    value_counts = df[ser].value_counts()
+    nonunique_values = value_counts[value_counts > 1].index
+
+    filtered_df = df[df[ser].isin(nonunique_values)]
+    print(filtered_df)
+
+    neededCol = filtered_df[['index', ser, matchCol]]
+    print(neededCol)
+    grouped =  neededCol.groupby(ser)
+    dfs_list = grouped.agg({matchCol: lambda x: x, 'index': tuple})
+
+    print(dfs_list)
+    return dfs_list
