@@ -4,15 +4,18 @@ from LCS import LCS
 def matchFinderLCS(colVals, clusterIndex) -> list[Matching]:
     matchings = []
     colValsTokens = []
+    values = []
     for value in colVals:
         value = str(value)
         if not isinstance(value, str):
             continue
-        
+        values.append(value)
         colValsTokens.append(value.split())
     
     for i in range(len(colValsTokens)):
         for j in range(i, len(colValsTokens)):
+            #if LCS(values[i], values[j]) < 2:
+             #   matchings.append(Matching())
             scolValsTokens1 = colValsTokens[i] #sorted(colValsTokens[i], key = len)
             scolValsTokens2 = colValsTokens[j] #sorted(colValsTokens[j], key = len)
             t1 = [[token, 0] for token in scolValsTokens1]
@@ -64,9 +67,9 @@ def matchFinderLCS(colVals, clusterIndex) -> list[Matching]:
                             matchToken = [token2[0], l]
                 
                 if len(token1[0]) > len(matchToken[0]):
-                    matchings.append(Matching(token1[0], matchToken[0], token1[1], clusterIndex, i, j, k, matchToken[1]))
+                    matchings.append(Matching(token1[0], matchToken[0], token1[1], clusterIndex, i, j, k, matchToken[1], True))
                 else:
-                    matchings.append(Matching(matchToken[0], token1[0], token1[1], clusterIndex, j, i, matchToken[1], k))
+                    matchings.append(Matching(matchToken[0], token1[0], token1[1], clusterIndex, j, i, matchToken[1], k, True))
     return matchings
                         
 def matchFinderCell(colVals) -> list[Matching]:
@@ -80,7 +83,7 @@ def matchFinderCell(colVals) -> list[Matching]:
         for j in range(i, len(valueList)):
             if valueList[i] == valueList[j]:
                 continue
-            matchings.append(Matching(valueList[i], valueList[j], LCS(valueList[i], valueList[j]), 0, 0, 0, 0, 0))
+            matchings.append(Matching(valueList[i], valueList[j], LCS(valueList[i], valueList[j]), 0, 0, 0, 0, 0, False))
     
     return matchings
                     

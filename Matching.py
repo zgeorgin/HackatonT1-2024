@@ -1,5 +1,5 @@
 class Matching:
-    def __init__(self, a : str, b : str, p : int, cluster_index : int, a_str_index : int, b_str_index : int, a_index : int, b_index : int):
+    def __init__(self, a : str, b : str, p : int, cluster_index : int, a_str_index : int, b_str_index : int, a_index : int, b_index : int, tokenized : bool):
         self.a = a
         self.b = b
         self.priority = p
@@ -8,5 +8,5 @@ class Matching:
         self.a_index = a_index
         self.b_index = b_index
         self.cluster_index = cluster_index
-        
+        self.tokenized = tokenized
         
