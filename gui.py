@@ -5,7 +5,7 @@ from tkinter import Button as But
 from tkinter import Toplevel, scrolledtext
 from PIL import Image, ImageTk
 import io
-
+from saver_loader import * 
 
 class GUI:
     def __init__(self, window, saver_loader, groups):
@@ -96,7 +96,7 @@ class GUI:
         submit_btn = Button(frame, text="Запустить алгоритм", command=self.run_algorithm)
         submit_btn.place(x=10, y=190)
 
-        make_btn = Button(frame, text="Сделать золотую запись")
+        make_btn = Button(frame, text="Сделать золотую запись", command=self.makeGolden)
         make_btn.place(x=160, y=190)
 
         save_button = Button(frame, text="Сохранить файл", command=self.saver_loader.save_file)
@@ -145,7 +145,7 @@ class GUI:
         self.duplicate_combobox.config(state="disabled")
         self.selected_connection_column = self.connection_combobox.get()
         self.connection_combobox.config(state="readonly")
-        self.selected_data_column = self.connection_combobox.get()
+        self.selected_data_column = self.data_combobox.get()
         self.data_combobox.config(state="readonly")
 
     def selected(self, event):
@@ -165,8 +165,28 @@ class GUI:
         elif selection2 == "Program":
             self.saver_loader.flags[2] = "Program"
 
+    def makeGolden(self):
+        self.saver_loader.result_df = self.saver_loader.GF.getGolden(self.selected_data_column)
+        
     def run_algorithm(self):
         if self.saver_loader.flags[0] == "Human":
+            uniqueCol = self.selected_duplicate_column
+            matchCol = self.selected_connection_column
+
+            self.saver_loader.GF.getClusters(uniqueCol, matchCol)
+            self.saver_loader.GF.getMatchings(self.saver_loader.flags[1])
+            print("MATCHED!")
+            self.saver_loader.GF.getTransformations()
+            self.saver_loader.GF.getGroups(self.saver_loader.flags[2]) 
+            
+            formated_groups = []
+            for key in self.saver_loader.GF.groups:
+                formated_groups.append([key])
+                for t in self.saver_loader.GF.groups[key][:20]:
+                    formated_groups[-1].append(f"{t.m.a} -> {t.m.b}")
+            
+            self.groups = formated_groups
+            
             results = []
             # Индекс текущей группы
             current_index = 0
@@ -231,6 +251,8 @@ class GUI:
             def handle_response(response):
                 nonlocal current_index
                 results.append(response)
+                if response:
+                    self.saver_loader.GF.applyGroup(current_index)
                 current_index += 1
                 if current_index < len(self.groups):
                     update_group()
@@ -353,8 +375,11 @@ class GUI:
             text_widget = Text(self.question_window, height=10, width=50)
             text_widget.pack(padx=20, pady=20)
 
-            message = "1) Кто двинется - тот гей\n" \
-                      "2) Лёша - главный гей ФАЛТа"
+            message = "1) Выберите датасет\n" \
+                      "2) Выберите метод подтверждения преобразований\n" \
+                      "3) Посмотрите информацию о датасете до запуска алгоритма\n"\
+                      "4) Нажмите 'Запустить алгоритм' \n" \
+                      "5) Посмотрите информацию о датасете после запуска алгоритма"
             text_widget.insert(END, message)
 
             def close_question_window():

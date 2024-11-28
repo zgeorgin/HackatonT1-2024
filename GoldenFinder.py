@@ -2,7 +2,8 @@ from prepData import *
 from aggregating import *
 from matchFinder import *
 import pandas as pd
-
+from datetime import datetime
+from tqdm import tqdm
 class GoldenFinder:
     def __init__(self, df):
         self.df = df.reset_index()
@@ -30,7 +31,7 @@ class GoldenFinder:
         self.transformations = [Transformation(m) for m in self.matchings]
         
     def getGroups(self, mode : str):
-        if mode == 'Structs':
+        if mode == 'Struct':
             self.groups = aggregateByStrucs(self.transformations)
     
     def applyGroup(self, groupIndex : int):
@@ -53,24 +54,31 @@ class GoldenFinder:
             for value1, value2, idx in zip(row[self.uniqueCol], row[self.matchCol], row['index']):
                 self.df.loc[idx, self.uniqueCol] = value1
                 self.df.loc[idx, self.matchCol] = value2
-    
-    def getGolden(self, dateCol):
-        result_df = pd.DataFrame()
-        self.dateCol = dateCol
-        for index, row in self.clusters.iterrows():
-            indicies = row['index']
-            rows = self.df.loc[indicies]
-            
-            latest_row = rows.loc[rows[self.dateCol]]
-            for column in latest_row.index:
-                if pd.isna(latest_row[column]):
-                    non_nan_value = rows[column].dropna().values
-                    if non_nan_value.size > 0:
-                        latest_row[column] = non_nan_value[0]
-        
-            result_df = result_df.append(latest_row, ignore_index=True)
 
-'''
+
+    def getGolden(self, dateCol):
+        # Сохраняем значение столбца даты
+        self.dateCol = dateCol
+        
+        # Предполагается, что 'cluster_id' в self.df ссылается на кластеры
+        # Создаем новый DataFrame с кластеризацией
+        self.df['cluster_id'] = self.df['index'].map(
+        dict(zip(
+            [i for j in self.clusters.index for i in self.clusters.loc[j, 'index']],
+            self.clusters.index
+        ))
+        )
+        
+        print(self.df)
+        # Используем groupby, чтобы выбрать строки с максимальной датой для каждого кластера
+        result_df = (
+            self.df.groupby('cluster_id')
+            .apply(lambda x: x.loc[x[dateCol].idxmax()])  # Выбираем строку с максимальной датой
+            .reset_index(drop=True)  # Сбрасываем индекс для результирующего DataFrame
+        )
+        print(self.clusters.index)
+        return result_df
+    '''
 Example:
 
 uniqueCol = "client_id" 

@@ -1,5 +1,6 @@
 import pandas as pd
 from tkinter import filedialog
+from GoldenFinder import *
 import threading
 import chardet
 
@@ -7,8 +8,10 @@ class SaverLoader:
     def __init__(self, window, gui=None, df=None, open_path=None, save_path=None, flags=None):
         self.window = window
         self.df = df
+        self.result_df = None
         self.open_path = open_path
         self.save_path = save_path
+        self.GF = None
         self.flags = ["Вручную проверить группы связей", "LCS", "Struct"]
         self.gui = gui
 
@@ -40,6 +43,7 @@ class SaverLoader:
                         self.window.update_idletasks()
 
                     self.df = pd.concat(data, ignore_index=True)
+                    self.GF = GoldenFinder(self.df)
                     cur_table.config(text=f"Текущая таблица: {self.open_path.split('/')[-1]}")
 
                     if self.df is not None:
@@ -59,10 +63,12 @@ class SaverLoader:
             progress_bar.grid_remove()
 
     def save_file(self):
+        if self.result_df is None:
+            return
         self.save_path = filedialog.asksaveasfilename()
         self.save_path += '.csv'
         with open(self.save_path, 'w+') as f:
-            self.df.to_csv(self.save_path)
+            self.result_df.to_csv(self.save_path)
 
 def detect_encoding(file_path):
     with open(file_path, 'rb') as f:
