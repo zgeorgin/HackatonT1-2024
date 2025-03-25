@@ -3,3 +3,5 @@ dummy_funcs.py
 /__pycache__
 ds_dirty_fin_202410041147.csv
 test.py
+.vscode/
+datasets/
